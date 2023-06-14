@@ -7,14 +7,41 @@ const app = express();
 const port = process.env.PORT || '1337';
 
 app.get("/", [
- validateRequest,
- createIdentifier,
- downloadBackground,
- downloadLogo,
- downloadOverlay,
- composeImage,
- sendImage,
- cleanupFiles,
+  validateRequest,
+  createIdentifier,
+  downloadBackground,
+  downloadLogo,
+  downloadOverlay,
+  composeImage,
+  sendImage,
+  cleanupFiles,
+]);
+
+const discoSolarisParameters = {
+  background: 'https://3661621217-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FTbGmiH46B8hAE3LSWc3N%2Fuploads%2FMhSrPlUqNC1uF4m5pDPr%2Fds_city_01_small.jpg?alt=media&token=e9e7602f-4223-4a22-80f8-a61b110f10dd',
+  logo: 'https://www.gitbook.com/cdn-cgi/image/width=256,dpr=2,height=40,fit=contain,format=auto/https%3A%2F%2F3661621217-files.gitbook.io%2F~%2Ffiles%2Fv0%2Fb%2Fgitbook-x-prod.appspot.com%2Fo%2Fspaces%252FTbGmiH46B8hAE3LSWc3N%252Flogo%252FRRFUMm3XefXddYAwR5RZ%252FDisco_Solaris_logo_02.png%3Falt%3Dmedia%26token%3Dc032c7f4-25ea-4ddd-87ef-2a33b2fe74b7',
+  overlay: 'https://static.vecteezy.com/system/resources/previews/013/473/793/large_2x/digital-online-gaming-overlay-design-with-modern-abstract-shapes-and-transparent-screen-panels-futuristic-streaming-overlay-for-broadcast-screens-live-gaming-frame-design-with-digital-buttons-free-png.png',
+  text: '20230615 New multiverse starts today',
+  'text-color': 'ffffff'
+};
+
+// Middleware to set fixed parameters
+function setDiscoSolarisParameters(req, res, next) {
+  req.query = discoSolarisParameters;
+  next();
+}
+
+// Create the new route
+app.get("/discosolaris", [
+  setDiscoSolarisParameters,
+  validateRequest,
+  createIdentifier,
+  downloadBackground,
+  downloadLogo,
+  downloadOverlay,
+  composeImage,
+  sendImage,
+  cleanupFiles,
 ]);
 
 app.listen(port, function () {
@@ -122,8 +149,6 @@ async function composeImage(req, res, next) {
  // Set the text color based on the 'text-color' query parameter
  const textColor = "#"+req.query['text-color'] || "#444";
  context.fillStyle = textColor;
- //context.fillStyle = "rgba(255, 255, 255, 0.8)"
- //context.fillStyle = "#444";
 
  const words = req.query.text.split(' ');
  const lines = [];
