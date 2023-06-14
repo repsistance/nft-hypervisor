@@ -1,6 +1,6 @@
 const express = require("express");
 const fs = require("fs");
-const client = require("https");
+const https = require("https");
 const { createCanvas, loadImage, registerFont } = require("canvas");
 
 const app = express();
@@ -17,16 +17,22 @@ app.get("/", [
   cleanupFiles,
 ]);
 
-const discoSolarisParameters = {
+let discoSolarisParameters = {
   background: 'https://3661621217-files.gitbook.io/~/files/v0/b/gitbook-x-prod.appspot.com/o/spaces%2FTbGmiH46B8hAE3LSWc3N%2Fuploads%2FMhSrPlUqNC1uF4m5pDPr%2Fds_city_01_small.jpg?alt=media&token=e9e7602f-4223-4a22-80f8-a61b110f10dd',
   logo: 'https://www.gitbook.com/cdn-cgi/image/width=256,dpr=2,height=40,fit=contain,format=auto/https%3A%2F%2F3661621217-files.gitbook.io%2F~%2Ffiles%2Fv0%2Fb%2Fgitbook-x-prod.appspot.com%2Fo%2Fspaces%252FTbGmiH46B8hAE3LSWc3N%252Flogo%252FRRFUMm3XefXddYAwR5RZ%252FDisco_Solaris_logo_02.png%3Falt%3Dmedia%26token%3Dc032c7f4-25ea-4ddd-87ef-2a33b2fe74b7',
   overlay: 'https://static.vecteezy.com/system/resources/previews/013/473/793/large_2x/digital-online-gaming-overlay-design-with-modern-abstract-shapes-and-transparent-screen-panels-futuristic-streaming-overlay-for-broadcast-screens-live-gaming-frame-design-with-digital-buttons-free-png.png',
-  text: '20230615 New multiverse starts today',
   'text-color': 'ffffff'
 };
 
 // Middleware to set fixed parameters
 function setDiscoSolarisParameters(req, res, next) {
+  getRandomFuturisticQuote()
+    .then(quote => {
+      discoSolarisParameters.text = `[${formattedDate}] ${quote}`;
+    })
+    .catch(err => {
+      console.error('An error occurred:', err);
+  });
   req.query = discoSolarisParameters;
   next();
 }
@@ -79,7 +85,7 @@ function downloadBackground(req, res, next) {
   const url = req.query.background;
   const file = fs.createWriteStream(`./${req.identifier}-background.png`);
  
-  client.get(url, (webRes) => {
+  https.get(url, (webRes) => {
   if (webRes.statusCode < 200 || webRes.statusCode > 299) {
   return res.status(400).send(`Got status code ${webRes.statusCode} while downloading background`);
   }
@@ -95,7 +101,7 @@ function downloadLogo(req, res, next) {
   const url = req.query.logo;
   const file = fs.createWriteStream(`./${req.identifier}-logo.png`);
  
-  client.get(url, (webRes) => {
+  https.get(url, (webRes) => {
   if (webRes.statusCode < 200 || webRes.statusCode > 299) {
   return res.status(400).send(`Got status code ${webRes.statusCode} while downloading logo`);
   }
@@ -111,7 +117,7 @@ function downloadOverlay(req, res, next) {
   const url = req.query.overlay;
   const file = fs.createWriteStream(`./${req.identifier}-overlay.png`);
  
-  client.get(url, (webRes) => {
+  https.get(url, (webRes) => {
   if (webRes.statusCode < 200 || webRes.statusCode > 299) {
   return res.status(400).send(`Got status code ${webRes.statusCode} while downloading overlay`);
   }
@@ -192,4 +198,46 @@ async function cleanupFiles(req, res, next) {
   fs.unlink(`./${req.identifier}-background.png`, () => {});
   fs.unlink(`./${req.identifier}-logo.png`, () => {});
   next();
+}
+
+function formatDate(date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}${month}${day}`;
+}
+
+const today = new Date();
+const formattedDate = formatDate(today);
+
+function getRandomFuturisticQuote() {
+  return new Promise((resolve, reject) => {
+    const options = {
+      hostname: 'zenquotes.io',
+      path: '/api/random',
+      method: 'GET',
+    };
+
+    const req = https.request(options, res => {
+      let data = '';
+      res.on('data', chunk => {
+        data += chunk;
+      });
+
+      res.on('end', () => {
+        if (res.statusCode === 200) {
+          const quote = JSON.parse(data)[0].q;
+          resolve(quote);
+        } else {
+          reject(new Error('Failed to fetch quotes.'));
+        }
+      });
+    });
+
+    req.on('error', err => {
+      reject(err);
+    });
+
+    req.end();
+  });
 }
