@@ -50,7 +50,7 @@ function createIdentifier(req, res, next) {
 
 function downloadBackground(req, res, next) {
  const url = req.query.background;
- const file = fs.createWriteStream(`./${req.identifier}-background.jpg`);
+ const file = fs.createWriteStream(`./${req.identifier}-background.png`);
 
  client.get(url, (webRes) => {
  if (webRes.statusCode < 200 || webRes.statusCode > 299) {
@@ -66,7 +66,7 @@ function downloadBackground(req, res, next) {
 
 function downloadLogo(req, res, next) {
  const url = req.query.logo;
- const file = fs.createWriteStream(`./${req.identifier}-logo.jpg`);
+ const file = fs.createWriteStream(`./${req.identifier}-logo.png`);
 
  client.get(url, (webRes) => {
  if (webRes.statusCode < 200 || webRes.statusCode > 299) {
@@ -97,8 +97,8 @@ function downloadOverlay(req, res, next) {
 }
 
 async function composeImage(req, res, next) {
- const background = await loadImage(`./${req.identifier}-background.jpg`);
- const logo = await loadImage(`./${req.identifier}-logo.jpg`);
+ const background = await loadImage(`./${req.identifier}-background.png`);
+ const logo = await loadImage(`./${req.identifier}-logo.png`);
  const overlay = await loadImage(`./${req.identifier}-overlay.png`);
 
  const width = background.width;
@@ -162,7 +162,8 @@ async function sendImage(req, res, next) {
 }
 
 async function cleanupFiles(req, res, next) {
- fs.unlink(`./${req.identifier}-background.jpg`, () => {});
- fs.unlink(`./${req.identifier}-logo.jpg`, () => {});
+ fs.unlink(`./${req.identifier}-overlay.png`, () => {});
+ fs.unlink(`./${req.identifier}-background.png`, () => {});
+ fs.unlink(`./${req.identifier}-logo.png`, () => {});
  next();
 }
